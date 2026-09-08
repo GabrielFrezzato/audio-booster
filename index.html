@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Booster — Console de Reforço de Áudio</title>
+<meta name="description" content="Aumente o volume de arquivos de áudio ou do microfone, ajuste graves/médios/agudos e exporte o resultado em WAV — tudo no navegador.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="console">
+
+  <header class="console__header">
+    <div class="brand">
+      <span class="brand__led" id="brandLed" aria-hidden="true"></span>
+      <h1>Audio&nbsp;Booster</h1>
+    </div>
+    <div class="status" id="status">
+      <span class="status__dot" id="statusDot"></span>
+      <span id="statusText">sem sinal</span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Fonte de áudio">
+    <button class="tab tab--active" id="tabFile" role="tab" aria-selected="true" data-source="file">Arquivo</button>
+    <button class="tab" id="tabMic" role="tab" aria-selected="false" data-source="mic">Microfone</button>
+  </nav>
+
+  <!-- FILE SOURCE -->
+  <section class="deck" id="fileDeck">
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Selecionar arquivo de áudio">
+      <input type="file" id="fileInput" accept="audio/*" hidden>
+      <p class="dropzone__title">Arraste um áudio aqui</p>
+      <p class="dropzone__hint">ou clique para escolher — MP3, WAV, OGG, M4A</p>
+      <p class="dropzone__file" id="fileName"></p>
+    </div>
+
+    <audio id="audioEl" preload="metadata" hidden></audio>
+
+    <div class="transport" id="transport" aria-hidden="true">
+      <button class="transport__btn" id="playBtn" aria-label="Reproduzir" disabled>
+        <svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="transport__btn transport__btn--small" id="stopBtn" aria-label="Parar" disabled>
+        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
+      </button>
+      <span class="transport__time" id="timeCurrent">0:00</span>
+      <input type="range" class="seek" id="seek" min="0" max="100" value="0" step="0.1" disabled>
+      <span class="transport__time" id="timeDuration">0:00</span>
+    </div>
+  </section>
+
+  <!-- MIC SOURCE -->
+  <section class="deck" id="micDeck" hidden>
+    <div class="mic-panel">
+      <button class="mic-btn" id="micBtn">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93V21h2v-3.07A7 7 0 0 0 19 11h-2z"/></svg>
+        <span id="micBtnLabel">Ativar microfone</span>
+      </button>
+      <p class="mic-hint">Use fones de ouvido — monitorar o microfone pelos alto-falantes causa retorno (feedback).</p>
+    </div>
+  </section>
+
+  <!-- SCOPE: waveform + meters -->
+  <section class="scope">
+    <canvas id="waveform" class="scope__canvas"></canvas>
+    <div class="meters">
+      <div class="meter-col">
+        <div class="meter" id="meterL"><div class="meter__fill" id="meterFillL"></div><div class="meter__peak" id="meterPeakL"></div></div>
+        <span class="meter-label">L</span>
+      </div>
+      <div class="meter-col">
+        <div class="meter" id="meterR"><div class="meter__fill" id="meterFillR"></div><div class="meter__peak" id="meterPeakR"></div></div>
+        <span class="meter-label">R</span>
+      </div>
+      <div class="clip-led" id="clipLed" title="Indicador de clipping"></div>
+    </div>
+  </section>
+
+  <!-- RACK: controls -->
+  <section class="rack">
+    <div class="fader-module fader-module--boost">
+      <label for="gainFader">Reforço</label>
+      <input type="range" id="gainFader" min="0" max="400" step="1" value="100">
+      <output id="gainReadout">100% · 0.0 dB</output>
+    </div>
+    <div class="fader-module">
+      <label for="bassFader">Graves</label>
+      <input type="range" id="bassFader" min="-12" max="12" step="0.5" value="0">
+      <output id="bassReadout">0.0 dB</output>
+    </div>
+    <div class="fader-module">
+      <label for="midFader">Médios</label>
+      <input type="range" id="midFader" min="-12" max="12" step="0.5" value="0">
+      <output id="midReadout">0.0 dB</output>
+    </div>
+    <div class="fader-module">
+      <label for="trebleFader">Agudos</label>
+      <input type="range" id="trebleFader" min="-12" max="12" step="0.5" value="0">
+      <output id="trebleReadout">0.0 dB</output>
+    </div>
+    <div class="switch-module">
+      <label class="switch">
+        <input type="checkbox" id="limiterToggle" checked>
+        <span class="switch__track"><span class="switch__thumb"></span></span>
+      </label>
+      <span class="switch-label">Limitador anti-clipping</span>
+    </div>
+  </section>
+
+  <section class="actions">
+    <button class="btn btn--ghost" id="resetBtn">Redefinir controles</button>
+    <button class="btn btn--primary" id="exportBtn" disabled>Exportar áudio reforçado (WAV)</button>
+  </section>
+  <p class="export-note" id="exportNote"></p>
+
+  <footer class="console__footer">
+    <p>Feito com a Web Audio API — sem servidor, sem upload, tudo roda no seu navegador.</p>
+  </footer>
+
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Caso ferramentas sejam adicionadas no futuro
+node_modules/
+npm-debug.log*
+dist/
+.env
