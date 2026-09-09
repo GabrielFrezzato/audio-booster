@@ -40,12 +40,6 @@ Não há build nem dependências. Duas formas de abrir:
 
    Depois acesse `http://localhost:8080`.
 
-## 🌐 Publicar no GitHub Pages
-
-1. Suba este repositório para `github.com/gabrielfrezzato/audio-booster`.
-2. Em **Settings → Pages**, selecione a branch `main` e a pasta `/ (root)`.
-3. O site fica disponível em `https://gabrielfrezzato.github.io/audio-booster/`.
-
 ## 🔊 Como funciona (resumo técnico)
 
 A cadeia de áudio conecta os nós da Web Audio API nesta ordem:
