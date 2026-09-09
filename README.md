@@ -2,6 +2,8 @@
 
 Um console de reforço de áudio que roda inteiramente no navegador. Suba um arquivo de áudio (ou use o microfone), aumente o volume além de 100%, ajuste graves/médios/agudos e exporte o resultado em WAV — sem servidor, sem upload, sem instalar nada.
 
+# Site github pages: https://gabrielfrezzato.github.io/audio-booster/
+
 ## ✨ Funcionalidades
 
 - **Reforço de volume de 0% a 400%** usando um `GainNode` da Web Audio API, com leitura em % e em dB.
